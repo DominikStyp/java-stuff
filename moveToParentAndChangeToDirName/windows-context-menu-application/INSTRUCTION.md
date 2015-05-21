@@ -9,4 +9,4 @@ It can **move** selected file to upper directory, changing it's name to director
 **C:/myDir/mySubDir/My-movie-with-cool-title/movie.mp4** ===> **C:/myDir/mySubDir/My-movie-with-cool-title.mp4**
 
 ### After add .reg files to Registry
-And you should see new context menu option **"Move to Parent and change name**, if you click right mouse button on every file.<br />
+And you should see new context menu option **"Move to Parent and change name"**, if you click right mouse button on every file.<br />
