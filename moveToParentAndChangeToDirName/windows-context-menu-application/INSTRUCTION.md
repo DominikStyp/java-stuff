@@ -8,5 +8,5 @@ And you're able to use simple **Java Application** from your context menu in **W
 It can **move** selected file to upper directory, changing it's name to directory's name as follows:<br />
 **C:/myDir/mySubDir/My-movie-with-cool-title/movie.mp4** ===> **C:/myDir/mySubDir/My-movie-with-cool-title.mp4**
 
-### After add .reg files to Registry
+### After add .reg file to Registry
 And you should see new context menu option **"Move to Parent and change name"**, if you click right mouse button on every file.<br />
