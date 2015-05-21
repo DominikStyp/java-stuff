@@ -11,7 +11,7 @@ public class MoveToParentAndChangeName {
 
 	public static void main(String[] args) throws Exception {
 		if(args.length < 1){
-			throw new Exception("Brak podanej sciezki");
+			throw new Exception("There's no path");
 		}
 		
 		String path = args[0];
