@@ -27,7 +27,7 @@ public class MoveToParentAndChangeName {
 		String fileName = file.getName();
 		String extension = getFileExtension(fileName);
 		int parentDirIndex = splittedPathList.size() - 2;
-		String parentDir = splittedPathList.get(parentDirIndex)
+		String parentDir = splittedPathList.get(parentDirIndex);
 		String newFileName = parentDir + "." + extension;
 		String newPath = "";
 		for(int i=0; i<parentDirIndex; i++){
