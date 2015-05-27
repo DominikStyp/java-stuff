@@ -1,5 +1,8 @@
 # What is this
 This is **Java program** build on **Swing** library, which allows you to **change file names in selected directory**, using defined **regular expressions**.<br />
+Program is saved as **Eclipse project**, so to use it you can import it to **Eclipse** by doing: <br />
+**Import -> General -> Existing Projects into Workspace (select git directory)**
+
 
 # How it works
 Use demo first: 
@@ -40,6 +43,10 @@ Save path looks similar to this (in Windows 7):<br />
 **C:\Users\USER\AppData\Local\Temp\dominik.fileOperationsProgram.FileOperationsFrame.1522857650210869596.serialized**<br />
 
 
+# Requirements
+- JRE 7 (Java Runtime Environment) installed
+
+
 # Issues
 ## Messed up Swing graphics in Java Swing (Windows 7)
 If you have messed up graphics in Java application window like it was mentioned <a href="http://stackoverflow.com/questions/22737535/swing-rendering-appears-broken-in-jdk-1-8-correct-in-jdk-1-7">HERE</a><br /> 
@@ -48,5 +55,12 @@ What you have to do:
 - Add new variable under "System variables" named **J2D_D3D** and give it **false** value
 - Restart Java Application (no system restart is needed)
 
+# DONATIONS
+Like my project ?   
+Want to help in future development, and adding new features ?   
+If you find this project useful...  
+#### You can <a href="https://sites.google.com/site/dominikdonationbutton/">SUPPORT ME BY PAYPAL</a>
+I created PayPal Donation Button as Google Site because here not all HTML tags are allowed and Donation Button HTML can't be put here...  
+Every dollar will be appreciated and help me in future development of my projects. 
 
 
