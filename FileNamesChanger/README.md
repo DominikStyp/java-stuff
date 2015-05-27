@@ -1,8 +1,15 @@
 # What is this
 This is **Java program** build on **Swing** library, which allows you to **change file names in selected directory**, using defined **regular expressions**.<br />
-Program is saved as **Eclipse project**, so to use it you can import it to **Eclipse** by doing: <br />
-**Import -> General -> Existing Projects into Workspace (select repo directory)**
 
+# Download/Run
+First you have to **clone** repository by: <br />
+```git
+$ git clone git@github.com:DominikStyp/java-stuff.git
+```
+Program is saved as **Eclipse (Kepler) project**, so to use it you can import it to **Eclipse** by doing: <br />
+**Import -> General -> Existing Projects into Workspace (select repo directory)**<br />
+Go to **src -> dominik.fileOperationsProgram -> FileOperationsFrame.java** and click **Run**<br /> 
+More information how to **Run Java Project in Eclipse** you can find <a href="http://help.eclipse.org/luna/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Ftasks%2Ftask-launching_java_program.htm&cp=25_3_6_4">HERE</a>
 
 # How it works
 Use demo first: 
