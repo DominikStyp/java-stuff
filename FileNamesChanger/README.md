@@ -1,7 +1,7 @@
 # What is this
 This is **Java program** build on **Swing** library, which allows you to **change file names in selected directory**, using defined **regular expressions**.<br />
 Program is saved as **Eclipse project**, so to use it you can import it to **Eclipse** by doing: <br />
-**Import -> General -> Existing Projects into Workspace (select git directory)**
+**Import -> General -> Existing Projects into Workspace (select repo directory)**
 
 
 # How it works
