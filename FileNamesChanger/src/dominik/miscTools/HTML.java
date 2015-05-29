@@ -6,6 +6,9 @@
 
 package dominik.miscTools;
 
+import java.util.Iterator;
+import java.util.Map;
+
 public class HTML {
 	
 	public static final String BR = "<br />";
@@ -28,7 +31,7 @@ public class HTML {
 	 * @return
 	 */
 	public static String wrapHTML(String text){
-		return "<html>" + text + "</html>";
+		return "<html><body>" + text + "</body></html>";
 	}
 	
 	/**
@@ -53,7 +56,28 @@ public class HTML {
 	 * @return String
 	 */
 	public static String removeHTMLOpenCloseTags(String text){
-		return text.replace("<html>","").replace("</html>", "");
+		return text.replace("<html><body>","").replace("</body></html>", "");
 	}
+	
+	/**
+	 * Converts HashMap<String,String> into HTML table
+	 * @param map HashMap<String,String>
+	 * @param tableAttributes HTML table attributes
+	 * @param th1Desc - first TH (table header) tag
+	 * @param th2Desc - second TH (table header) tag
+	 * @return
+	 */
+	public static String makeHTMLTableFromHashmap(Map<String,String> map, String tableAttributes, String th1Desc, String th2Desc){
+		StringBuilder ret = new StringBuilder("<table " + tableAttributes + "><tr><th>"+ th1Desc +"</th><th>"+ th2Desc +"</th></tr>");
+		Iterator<Map.Entry<String,String>> it = map.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry<String,String> pair = (Map.Entry<String,String>)it.next();
+	        ret.append("<tr><td>" + pair.getKey() + "</td><td>" + pair.getValue() + "</td></tr>");
+	        it.remove(); // avoids a ConcurrentModificationException
+	    }
+		return ret.append("</table>").toString();
+	}
+	
+	
 
 }

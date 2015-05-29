@@ -9,6 +9,8 @@ package dominik.fileOperationsProgram;
 import static dominik.miscTools.Files.*;
 import static dominik.miscTools.HTML.*;
 
+import java.awt.Button;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -25,6 +27,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,7 +35,21 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
+
+
+
+
+import javax.swing.SizeRequirements;
+import javax.swing.text.Element;
+import javax.swing.text.View;
+import javax.swing.text.ViewFactory;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.InlineView;
+import javax.swing.text.html.ParagraphView;
+
 
 import dominik.miscTools.OS;
 import dominik.translations.FileOperationsTranslations;
@@ -49,43 +66,56 @@ import dominik.translations.FileOperationsTranslations.AvailableLanguages;
  */
 public class FileOperationsFrame extends SaveableJFrame implements Serializable {
 
+	
+	////////////////// STATIC //////////////////////////////////
 	/**
 	 * Common stuff used to properly save/load class from disk (serialize)
 	 */
 	private static FileOperationsFrame frame = null;
 	protected static Class<FileOperationsFrame> classReference = FileOperationsFrame.class;
 	private static final long serialVersionUID = -6622515562728595593L;
+	private static AvailableLanguages selectedLanguage = null;
+	private final static String replace = "#replace";
+	private final static String css = " td, th { background: white; } ";
+	private final static String tableAttributes =" cellspacing=\"1\" border=\"0\" cellpadding=\"2\" style=\"background-color: black;\" ";
+	private static final String textAreaInitialHTML = "<html><head><style> " + css + "</style></head><body></body></html>";
+	/// Example button sets up following values
+	private static final String sampleRegexFrom = "sample\\w+(\\d+)\\.txt";
+	private static final String sampleRegexTo = "$1_sample.txt";
+	private static final String sampleDirectory = getCurrentDirectory() + getFileSeparator() + "TEST_DIR";
+	
+	//for debugging only
+	private static boolean debuggingModeOn = false;
+	
 	/**
 	 * Fields, buttons - GUI stuff
 	 * Common stuff
 	 */
 	private JPanel contentPane = null;
 	private JScrollPane scrollPane = null;
-	private JLabel labelChoosedDirectory;
-	private JLabel lblMessage = null;
-	private JLabel labelRegexFrom = null;
-	private JLabel labelRegexTo = null;
-	private JLabel labelGiveRegex = null;
-	private JLabel lblChooseLanguage = null;
+	private JLabel choosedDirectoryLabel;
+	private JLabel regexFromLabel = null;
+	private JLabel regexToLabel = null;
+	private JLabel giveRegexLabel = null;
+	private JLabel chooseLanguageLabel = null;
 	private File lastChoosedDirectory = null;
-	private JTextPane textPaneRegexFrom = null;
-	private JTextPane textPaneRegexTo = null;
-	private JButton btnChangeFileNames = null;
-	private JButton btnChooseDestinationDirectory = null;
-	private JButton btnSimulateChangeFileNames = null;
-	private JButton btnCopyToClipboard = null;
-	private JButton btnResetToDefaults = null;
-	private JCheckBox chckbxSaveStateOn = null;
-	private static AvailableLanguages selectedLanguage = null;
-	JComboBox<String> comboBox = null;
+	private JTextPane regexFrom = null;
+	private JTextPane regexTo = null;
+	private JButton buttonChangeFileNames = null;
+	private JButton buttonChooseDestinationDirectory = null;
+	private JButton buttonSimulateChangeFileNames = null;
+	private JButton buttonCopyToClipboard = null;
+	private JButton buttonResetToDefaults = null;
+	private JCheckBox checkboxSaveStateOn = null;
+	private JCheckBox checkboxRecursiveSearch = null;
+	private JEditorPane textArea = null;
+	private JCheckBox checkboxShowFullPath = null;
+	private JButton buttonClear = null;
+	private JComboBox<String> comboBox = null;
+	private JButton buttonExample = null;
 
 	//// language /////////
 	private FileOperationsTranslations translations = null;
-	private JButton btnExample = null;
-	
-	//// private constants
-	private final static String replace = "#replace";
-	private final static String arrow = " ==> ";
 
 	/**
 	 * Launch the application.
@@ -98,21 +128,7 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 			}
 		});
 	}
-	
-	public static void initFrame(){
-		try {
-			frame = getFrameInstance() ;
-			frame.selectLanguage(selectedLanguage); //select default language
-			frame.attachListeners();
-			frame.setVisible(true);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
-	
+
 	/**
 	 * Create the frame.
 	 */
@@ -124,7 +140,25 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		drawLayout();
 	}
 	
-	public void drawLayout(){
+	///// try read object from disk if it fails, create new instance ////////////////////
+	public static FileOperationsFrame getFrameInstance(){
+		return FileOperationsFrame.<FileOperationsFrame>readObjectFromDisk(classReference);
+	}
+	
+	private static void initFrame(){
+		try {
+			frame = getFrameInstance() ;
+			frame.selectLanguage(selectedLanguage); //select default language
+			frame.attachListeners();
+			frame.setVisible(true);
+
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void drawLayout(){
 
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -134,89 +168,105 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		
 		//add scrollable pane
 		scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 206, 789, 296);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scrollPane.setBounds(10, 206, 840, 300);
 		contentPane.add(scrollPane);
 		
-		// label empty
-		lblMessage = new JLabel();
-		scrollPane.setColumnHeaderView(lblMessage);
-		lblMessage.setFont(getFontObject());
+		//////////// PANE WITH HTML ////////////////////////////
+		
+		///////////////////////// MAIN TEXTAREA //////////////////////////
+		///////////////////////// MAIN TEXTAREA //////////////////////////
+		///////////////////////// MAIN TEXTAREA //////////////////////////
+		///////////////////////// MAIN TEXTAREA //////////////////////////
+		textArea = new JEditorPane();
+		textArea.setEditable(false);
+		textArea.setFont(new Font("Arial", Font.PLAIN, 9));
+		// Java7 JEditorPane has known line wrapping issue, that has to be fixed using custom editor kit
+		textArea.setEditorKit(new CustomEditorKit());
+		textArea.setContentType("text/html");
+		textArea.setText(textAreaInitialHTML);
+		scrollPane.setViewportView(textArea);
+		//////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////
 		
 		//regex to input pane
-		textPaneRegexTo = new JTextPane();
-		textPaneRegexTo.setBounds(189, 141, 200, 20);
-		textPaneRegexTo.setFont(getFontObject());
-		contentPane.add(textPaneRegexTo);
+		regexTo = new JTextPane();
+		regexTo.setBounds(189, 141, 200, 20);
+		regexTo.setFont(getFontObject());
+		contentPane.add(regexTo);
 		
 		//regex input pane
-		textPaneRegexFrom = new JTextPane();
-		textPaneRegexFrom.setBounds(189, 110, 200, 20);
-		textPaneRegexFrom.setFont(getFontObject());
-		contentPane.add(textPaneRegexFrom);
+		regexFrom = new JTextPane();
+		regexFrom.setBounds(189, 110, 200, 20);
+		regexFrom.setFont(getFontObject());
+		contentPane.add(regexFrom);
 		
 		/////////////////////// LABELS /////////////////////////////////////////
 		
 		//label 'choose directory'
-		labelChoosedDirectory = new JLabel();
-		labelChoosedDirectory.setBounds(10, 45, 708, 31);
-		labelChoosedDirectory.setFont(new Font("Arial", Font.PLAIN, 12));
-		contentPane.add(labelChoosedDirectory);
+		choosedDirectoryLabel = new JLabel();
+		choosedDirectoryLabel.setBounds(10, 45, 708, 31);
+		choosedDirectoryLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+		contentPane.add(choosedDirectoryLabel);
 		
 		//label 'regex from'
-		labelRegexFrom = new JLabel();
-		labelRegexFrom.setBounds(10, 110, 179, 14);
-		labelRegexFrom.setFont(getFontObject());
-		contentPane.add(labelRegexFrom);
+		regexFromLabel = new JLabel();
+		regexFromLabel.setBounds(10, 110, 179, 14);
+		regexFromLabel.setFont(getFontObject());
+		contentPane.add(regexFromLabel);
 		
 		//label 'regex to'
-		labelRegexTo = new JLabel();
-		labelRegexTo.setBounds(10, 141, 179, 14);
-		labelRegexTo.setFont(getFontObject());
-		contentPane.add(labelRegexTo);
+		regexToLabel = new JLabel();
+		regexToLabel.setBounds(10, 141, 179, 14);
+		regexToLabel.setFont(getFontObject());
+		contentPane.add(regexToLabel);
 		
 		//label 'give regex desc'
-		labelGiveRegex = new JLabel();
-		labelGiveRegex.setBounds(10, 87, 458, 14);
-		labelGiveRegex.setFont(getFontObject());
-		contentPane.add(labelGiveRegex);
+		giveRegexLabel = new JLabel();
+		giveRegexLabel.setBounds(10, 87, 458, 14);
+		giveRegexLabel.setFont(getFontObject());
+		contentPane.add(giveRegexLabel);
 		
 		////////////////////// BUTTONS ////////////////////////////////////
 		
 		//button choose directory
-		btnChooseDestinationDirectory = new JButton();
-		btnChooseDestinationDirectory.setBounds(10, 11, 227, 23);
-		btnChooseDestinationDirectory.setFont(getFontObject());
-		contentPane.add(btnChooseDestinationDirectory);
+		buttonChooseDestinationDirectory = new JButton();
+		buttonChooseDestinationDirectory.setBounds(10, 11, 227, 23);
+		buttonChooseDestinationDirectory.setFont(getFontObject());
+		contentPane.add(buttonChooseDestinationDirectory);
 		
 		//button simulate change file name
-		btnSimulateChangeFileNames = new JButton();
-		btnSimulateChangeFileNames.setFont(getFontObject());
-		btnSimulateChangeFileNames.setBounds(10, 172, 179, 23);
-		contentPane.add(btnSimulateChangeFileNames);
+		buttonSimulateChangeFileNames = new JButton();
+		buttonSimulateChangeFileNames.setFont(getFontObject());
+		buttonSimulateChangeFileNames.setBounds(10, 172, 179, 23);
+		contentPane.add(buttonSimulateChangeFileNames);
 		
 		//button change file names
-		btnChangeFileNames = new JButton();
-		btnChangeFileNames.setBounds(228, 172, 161, 23);
-		btnChangeFileNames.setFont(getFontObject());
-		contentPane.add(btnChangeFileNames);
+		buttonChangeFileNames = new JButton();
+		buttonChangeFileNames.setBounds(228, 172, 161, 23);
+		buttonChangeFileNames.setFont(getFontObject());
+		contentPane.add(buttonChangeFileNames);
 		
 		//button copy to clipboard
-		btnCopyToClipboard = new JButton();
-		btnCopyToClipboard.setBounds(10, 513, 137, 23);
-		btnCopyToClipboard.setFont(getFontObject());
-		contentPane.add(btnCopyToClipboard);
+		buttonCopyToClipboard = new JButton();
+		buttonCopyToClipboard.setBounds(10, 513, 137, 23);
+		buttonCopyToClipboard.setFont(getFontObject());
+		contentPane.add(buttonCopyToClipboard);
 		
 		//button delete saved settings
-		btnResetToDefaults = new JButton();
-		btnResetToDefaults.setBounds(638, 513, 161, 23);
-		btnResetToDefaults.setFont(getFontObject());
-		contentPane.add(btnResetToDefaults);	
+		buttonResetToDefaults = new JButton();
+		buttonResetToDefaults.setBounds(689, 513, 161, 23);
+		buttonResetToDefaults.setFont(getFontObject());
+		contentPane.add(buttonResetToDefaults);	
 		
-		chckbxSaveStateOn = new JCheckBox();
-		chckbxSaveStateOn.setBounds(153, 513, 190, 23);
-		chckbxSaveStateOn.setSelected(false);
-		chckbxSaveStateOn.setFont(getFontObject());
-		contentPane.add(chckbxSaveStateOn);
+		checkboxSaveStateOn = new JCheckBox();
+		checkboxSaveStateOn.setBounds(493, 513, 190, 23);
+		checkboxSaveStateOn.setSelected(false);
+		checkboxSaveStateOn.setFont(getFontObject());
+		contentPane.add(checkboxSaveStateOn);
 		
 		comboBox = new JComboBox<String>();
 		comboBox.setBounds(728, 25, 71, 20);
@@ -224,16 +274,31 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		comboBox.setFont(getFontObject());
 		contentPane.add(comboBox);
 		
-		lblChooseLanguage = new JLabel();
-		lblChooseLanguage.setBounds(728, 11, 132, 14);
-		lblChooseLanguage.setFont(getFontObject());
-		contentPane.add(lblChooseLanguage);
+		chooseLanguageLabel = new JLabel();
+		chooseLanguageLabel.setBounds(728, 11, 132, 14);
+		chooseLanguageLabel.setFont(getFontObject());
+		contentPane.add(chooseLanguageLabel);
 		
-		btnExample = new JButton();
-		btnExample.setFont(getFontObject());
-		btnExample.setBounds(247, 11, 152, 23);
+		buttonExample = new JButton();
+		buttonExample.setFont(getFontObject());
+		buttonExample.setBounds(247, 11, 152, 23);
+		contentPane.add(buttonExample);
 		
-		contentPane.add(btnExample);
+		checkboxRecursiveSearch = new JCheckBox();
+		checkboxRecursiveSearch.setFont(getFontObject());
+		checkboxRecursiveSearch.setBounds(395, 172, 161, 23);
+		contentPane.add(checkboxRecursiveSearch);
+		
+		checkboxShowFullPath = new JCheckBox();
+		checkboxShowFullPath.setFont(getFontObject());
+		checkboxShowFullPath.setSelected(true);
+		checkboxShowFullPath.setBounds(395, 146, 161, 23);
+		contentPane.add(checkboxShowFullPath);
+		
+		buttonClear = new JButton();
+		buttonClear.setBounds(157, 513, 180, 23);
+		buttonClear.setFont(getFontObject());
+		contentPane.add(buttonClear);
 		/////////////////////////// NEEDED TO BE IN OUTER METHOD DUE TO DYNAMIC TRANSLATIONS /////////////////////////
 		setComponentTexts();
 	}
@@ -242,38 +307,42 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 	 * Setting up text for all compononents
 	 * Needed to be in separate method due to dynamic translation while changing language
 	 */
-	public void setComponentTexts(){
+	private void setComponentTexts(){
 		setTitle(translations.getRegexFileChanger());
-		btnCopyToClipboard.setText(translations.getCopyToClipboard());
-		textPaneRegexTo.setToolTipText(wrapHTML(translations.getRegexToInfo()));
-		textPaneRegexFrom.setToolTipText(wrapHTML(translations.getRegexFromInfo()));
-		labelRegexFrom.setText(translations.getGiveRegexFrom());
-		labelRegexTo.setText(translations.getGiveRegexTo());
-		labelGiveRegex.setText(translations.getBelowGiveRegexRules());
-		btnChooseDestinationDirectory.setText(translations.getChooseDestinationDirectory());
-		btnSimulateChangeFileNames.setToolTipText(wrapHTML(translations.getSimulateFileChangesInfo()));
-		btnSimulateChangeFileNames.setText(translations.getSimulateChangeNames());
-		btnChangeFileNames.setToolTipText(wrapHTML(translations.getChangeFileNamesInfo()));
-		btnChangeFileNames.setText(translations.getChangeNames());
-		btnCopyToClipboard.setToolTipText(wrapHTML(translations.getCopyToClipBoardInfo()));
-		btnCopyToClipboard.setText(translations.getCopyToClipboard());
-		btnResetToDefaults.setToolTipText(wrapHTML(translations.getResetToDefaultsInfo()));
-		btnResetToDefaults.setText(translations.getDeleteSettings());
-		btnExample.setText(translations.getShowExample());
-		btnExample.setToolTipText(translations.getButtonShowExSettings());
-		chckbxSaveStateOn.setToolTipText(wrapHTML(translations.getSaveStateCheckBoxInfo()));
-		chckbxSaveStateOn.setText(translations.getSaveStateOnExit());
-		lblChooseLanguage.setText(translations.getChooseLanguage());
+		buttonCopyToClipboard.setText(translations.getCopyToClipboard());
+		regexTo.setToolTipText(wrapHTML(translations.getRegexToInfo()));
+		regexFrom.setToolTipText(wrapHTML(translations.getRegexFromInfo()));
+		regexFromLabel.setText(translations.getGiveRegexFrom());
+		regexToLabel.setText(translations.getGiveRegexTo());
+		giveRegexLabel.setText(translations.getBelowGiveRegexRules());
+		buttonChooseDestinationDirectory.setText(translations.getChooseDestinationDirectory());
+		buttonSimulateChangeFileNames.setToolTipText(wrapHTML(translations.getSimulateFileChangesInfo()));
+		buttonSimulateChangeFileNames.setText(translations.getSimulateChangeNames());
+		buttonChangeFileNames.setToolTipText(wrapHTML(translations.getChangeFileNamesInfo()));
+		buttonChangeFileNames.setText(translations.getChangeNames());
+		buttonCopyToClipboard.setToolTipText(wrapHTML(translations.getCopyToClipBoardInfo()));
+		buttonCopyToClipboard.setText(translations.getCopyToClipboard());
+		buttonResetToDefaults.setToolTipText(wrapHTML(translations.getResetToDefaultsInfo()));
+		buttonResetToDefaults.setText(translations.getDeleteSettings());
+		buttonExample.setText(translations.getShowExample());
+		buttonExample.setToolTipText(translations.getButtonShowExSettings());
+		checkboxSaveStateOn.setToolTipText(wrapHTML(translations.getSaveStateCheckBoxInfo()));
+		checkboxSaveStateOn.setText(translations.getSaveStateOnExit());
+		chooseLanguageLabel.setText(translations.getChooseLanguage());
 		setDirectoryInfoLabel(translations.getSeeChoosedDirPath());
+		checkboxRecursiveSearch.setText(translations.getRecursiveSearch());
+		checkboxRecursiveSearch.setToolTipText(translations.getRecursiveSearchToolTip());
+		checkboxShowFullPath.setToolTipText(translations.getShowFullPathCheckboxTooltip());
+		checkboxShowFullPath.setText(translations.getShowFullPathCheckbox());
+		buttonClear.setText(translations.getButtonClear());
+		buttonClear.setToolTipText(translations.getButtonClearTooltip());
 	}
 	
 	private void setDirectoryInfoLabel(String info){
-		labelChoosedDirectory.setText(wrapHTML(bold(info)));
+		choosedDirectoryLabel.setText(wrapHTML(bold(info)));
 	}
-	
-	
-	
-	public void selectLanguage(AvailableLanguages lang){
+
+	private void selectLanguage(AvailableLanguages lang){
 		if(lang == null){
 			lang = AvailableLanguages.English;
 		}
@@ -283,65 +352,178 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 	private Font getFontObject(){
 		return new Font("Arial", Font.PLAIN, 11);
 	}
-	
-	
-	///// try read object from disk if it fails, create new instance ////////////////////
-	public static FileOperationsFrame getFrameInstance(){
-		return FileOperationsFrame.<FileOperationsFrame>readObjectFromDisk(classReference);
-	}
-	
-	
 
 	/**
 	 * Method is checking if checkbox "Save state on exit" is checked
 	 */
 	@Override
 	protected boolean isSaveObjectToDiskOnCloseTurnedOn(){
-		return chckbxSaveStateOn.isSelected();
+		return checkboxSaveStateOn.isSelected();
 	}
 	
-	public void attachListeners(){
+	private boolean isRecursiveSearch(){
+		return checkboxRecursiveSearch.isSelected();
+	}
+	private boolean isShowFullPath(){
+		return checkboxShowFullPath.isSelected();
+	}
+	
+	private String getChangedFilesAsHTMLTable(Map<String,String> map){
+		return makeHTMLTableFromHashmap(map, tableAttributes, translations.getNameBeforeChange(), translations.getNameAfterChange());
+	}
+	
+	
+	///////////////////// MESSAGES POP UPS ///////////////////////////////////
+	private void showPlainMessage(String msg){
+		JOptionPane.showMessageDialog(frame,
+			     wrapHTML(msg),
+			     translations.getInfo(),
+			    JOptionPane.PLAIN_MESSAGE);
+	}
+	
+	private void showWarningMessage(String msg){
+		JOptionPane.showMessageDialog(frame,
+			     wrapHTML(msg),
+			     translations.getWarning(),
+			    JOptionPane.WARNING_MESSAGE);
+	}
+	
+	private void showErrorMessage(String msg){
+		JOptionPane.showMessageDialog(frame,
+			     wrapHTML(msg),
+			     translations.getError(),
+			    JOptionPane.ERROR_MESSAGE);
+	}
+	//////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Appends message in HTML format to JLabel 
+	 * @param message
+	 */
+	private void setMessage(String message){
+		String msg = getMessage();
+		String newMsg =  msg.replace("</body>", message + "</body>");
+		textArea.setText( newMsg );
+	}
+	
+	private void showTextAreaHTMLInConsole(){
+		debugInfo( "-------------------------\n" + textArea.getText() );
+	}
+	
+	/**
+	 * Gets textArea contents in HTML format
+	 * @return
+	 */
+	private String getMessage(){
+			return textArea.getText();
+	}
+	/**
+	 * Gets textArea contents in plain text format
+	 * @return
+	 * @throws BadLocationException 
+	 */
+	private String getMessagePlainText() throws BadLocationException{
+		return textArea.getDocument().getText(0, textArea.getDocument().getLength());
+}
+	
+	private static String getTestDir(){
+		return sampleDirectory;
+	}
+	
+	/**
+	 * Setting up example values if user clicks on Example button
+	 */
+	private void setupInitialValues(){
+		String testDir = getTestDir();
+		setDirectoryInfoLabel(testDir);
+		lastChoosedDirectory = new File(testDir);
+		regexFrom.setText(sampleRegexFrom);
+		regexTo.setText(sampleRegexTo);
+	}
+
+	/**
+	 * Resetting fields if user clicks on Reset button
+	 */
+	private void resetFields(){
+		setDirectoryInfoLabel("");
+		regexFrom.setText("");
+		regexTo.setText("");
+		textArea.setText("");
+		lastChoosedDirectory = null;
+		checkboxSaveStateOn.setEnabled(false);
+		setMessage(translations.getFieldsHasBeenReset());
+	}
+	
+	
+///////////////////////////// BUTTON ACTIONS ///////////////////////////////////////////
+///////////////////////////// BUTTON ACTIONS ///////////////////////////////////////////
+///////////////////////////// BUTTON ACTIONS ///////////////////////////////////////////
+///////////////////////////// BUTTON ACTIONS ///////////////////////////////////////////
+///////////////////////////// BUTTON ACTIONS ///////////////////////////////////////////
+///////////////////////////// BUTTON ACTIONS ///////////////////////////////////////////
+	
+	private void attachListeners(){
 		//Add window listener
 		this.removeWindowListener(this);
 		this.addWindowListener(this); 
 
-		btnCopyToClipboard.addActionListener(new ActionListener() {
+		buttonCopyToClipboard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				setMessage( translations.getCopiedToClipboard() );
-				OS.copyStringToClipboard( getMessage() );
+				try {
+					OS.copyStringToClipboard( getMessagePlainText() );
+				} catch (BadLocationException e) {
+					showErrorMessage(e.getMessage());
+					return;
+				}
 				setMessage( translations.getMessageHasBeenCopied() );
 			}
 		});
 		
-		btnChooseDestinationDirectory.addActionListener(new ActionListener() {
+		buttonChooseDestinationDirectory.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				chooseDirectoryAction();
 			}
 		});
 		
-		btnChangeFileNames.addActionListener(new ActionListener() {
+		buttonChangeFileNames.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				setMessage( translations.getFileNamesChanged() );
 				changeFileNamesAction(false);//false => real file change
 			}
 		});
 		
-		btnSimulateChangeFileNames.addActionListener(new ActionListener() {
+		buttonSimulateChangeFileNames.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				setMessage( translations.getSimulateChangeNames() );
 				changeFileNamesAction(true);//true => only simulation of change with log
+				if(debuggingModeOn){
+					showTextAreaHTMLInConsole();
+					debugInfo(textArea.getDocument().getDefaultRootElement().getName());
+					debugInfo("Preferred dimensions of getPreferredSize: " + textArea.getPreferredSize());
+					debugInfo("Preferred dimensions of getPreferredScrollableViewportSize: " + textArea.getPreferredScrollableViewportSize());
+				}
 			}
 		});
 		
 		
-		btnExample.addActionListener(new ActionListener() {
+		buttonExample.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				setupInitialValues();
-				showPlainMessage(translations.getExampleSettingsPopup());
+				//if it's not debugging mode
+				if(!debuggingModeOn){
+					showPlainMessage(translations.getExampleSettingsPopup());
+				}
 			}
 		});
 		
-		btnResetToDefaults.addActionListener(new ActionListener() {
+		
+		buttonClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				textArea.setText(textAreaInitialHTML);
+			}
+		});
+		
+		buttonResetToDefaults.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if( deleteSavedObject() ) {
 					setMessage( translations.getPreviousSettingsRemovedFromFile().replace(replace, getObjectSavePath()) );
@@ -357,18 +539,22 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 			}
 		});
 		comboBox.addActionListener(new ActionListener() {
+			@SuppressWarnings("unchecked")
 			public void actionPerformed(ActionEvent arg0) {
 				JComboBox<String> obj = (JComboBox<String>) arg0.getSource();
 				selectedLanguage = AvailableLanguages.getByName( (String)obj.getSelectedItem() ) ;
 				selectLanguage(selectedLanguage);
 				setComponentTexts();
 			};
-		});
+		});	
+		
+		//for debug 
+		if(debuggingModeOn){
+			buttonExample.doClick();
+		}
+		
 		
 	}
-
-
-	
 	
 	/**
 	 * Opens JFileChooser to pick up directory 
@@ -402,8 +588,8 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 	 * @param simulateOnly
 	 */
 	private void changeFileNamesAction(boolean simulateOnly){
-		String from = textPaneRegexFrom.getText();
-		String to = textPaneRegexTo.getText();
+		String from = regexFrom.getText();
+		String to = regexTo.getText();
 		if(lastChoosedDirectory == null){
 			showWarningMessage(translations.getFirstChooseDir());
 			return;
@@ -421,15 +607,25 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		try {
 				Pattern fromPattern = Pattern.compile(from);
 				Pattern toPattern = Pattern.compile(to);
-				File[] files = getFilesFromPath(absPath);
+				File[] files = null;
+				//recursive search
+				if(isRecursiveSearch()){
+					files = getFilesFromPathRecursive(absPath);
+				} 
+				//search only in first level
+				else {
+					files = getFilesFromPath(absPath);
+				}
 				if(files.length < 1){
 					setMessage(translations.getHaveNotFoundFilesInDir());
 					return;
 				}
 				///////////////////// RENAME FILES /////////////////////////////////////////////////////////////////////
-				String changeLog = getChangedFilesAsString( renameFilesInSameDir(files, fromPattern, toPattern, simulateOnly) );
-				if(changeLog.length() > 0){
-					setMessage( (simulateOnly ? "" : translations.getFileNamesChanged() + BR) + changeLog.toString() );
+				Map<String,String> renamedFiles = renameMachedFiles(files, fromPattern, toPattern, simulateOnly, isShowFullPath());
+				String htmlString = getChangedFilesAsHTMLTable ( renamedFiles );
+				
+				if(htmlString.length() > 0){
+					setMessage( (simulateOnly ? "" : translations.getFileNamesChanged() + BR) + htmlString.toString() );
 				}
 				else {
 					showWarningMessage( translations.getHaventFoudFilesMachedPattern() + ": " + bold(fromPattern.toString()) );
@@ -450,89 +646,68 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		}
 	}
 	
-	private String getChangedFilesAsString(Map<String,String> map){
-		StringBuilder changeLog = new StringBuilder();
-		Iterator<Map.Entry<String,String>> it = map.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry<String,String> pair = (Map.Entry<String,String>)it.next();
-	        changeLog.append(colorize(pair.getKey(),"green")).append(arrow).append(colorize(pair.getValue(),"red")).append(BR);
-	        it.remove(); // avoids a ConcurrentModificationException
-	    }
-		return changeLog.toString();
-	}
 	
-
-
-	
-	
-	
-	///////////////////// MESSAGES POP UPS ///////////////////////////////////
-	private void showPlainMessage(String msg){
-		JOptionPane.showMessageDialog(frame,
-			     wrapHTML(msg),
-			     translations.getInfo(),
-			    JOptionPane.PLAIN_MESSAGE);
-	}
-	
-	private void showWarningMessage(String msg){
-		JOptionPane.showMessageDialog(frame,
-			     wrapHTML(msg),
-			     translations.getWarning(),
-			    JOptionPane.WARNING_MESSAGE);
-	}
-	
-	private void showErrorMessage(String msg){
-		JOptionPane.showMessageDialog(frame,
-			     wrapHTML(msg),
-			     translations.getError(),
-			    JOptionPane.ERROR_MESSAGE);
-	}
-	//////////////////////////////////////////////////////////////////////////
-	
-	/**
-	 * Appends message in HTML format to JLabel 
-	 * @param message
-	 */
-	private void setMessage(String message){
-		String msg = getMessage();
-		debugInfo( removeHTMLTags(msg) );
-		lblMessage.setText( wrapHTML( ((msg.length() > 0) ? msg + BR : msg)  + message ) );
-	}
-	
-	/**
-	 * Gets message without &lt;html&gt;&lt;/html&gt; tags
-	 * @return
-	 */
-	private String getMessage(){
-		return removeHTMLOpenCloseTags(lblMessage.getText());
-	}
-	
-	private static String getTestDir(){
-		String curDir = getCurrentDirectory();
-		return curDir + getFileSeparator() + "TEST_DIR";
-	}
-	
-	/**
-	 * Setting up example values if user clicks on Example button
-	 */
-	private void setupInitialValues(){
-		String testDir = getTestDir();
-		setDirectoryInfoLabel(testDir);
-		lastChoosedDirectory = new File(testDir);
-		textPaneRegexFrom.setText("sample\\w+(\\d+)\\.txt");
-		textPaneRegexTo.setText("$1_sample.txt");
-	}
-
-	/**
-	 * Resetting fields if user clicks on Reset button
-	 */
-	private void resetFields(){
-		setDirectoryInfoLabel("");
-		textPaneRegexFrom.setText("");
-		textPaneRegexTo.setText("");
-		lblMessage.setText("");
-		lastChoosedDirectory = null;
-		chckbxSaveStateOn.setEnabled(false);
-		setMessage(translations.getFieldsHasBeenReset());
-	}
 }
+
+/**
+ * Following class is from: http://stackoverflow.com/questions/17533451/jeditorpane-linewrap-in-java7
+ * And it's used to fix Java7 JEditorPane issue with line wrapping which doesn't correctly work with longer strings without spaces 
+ * @author Dominik
+ *
+ */
+@SuppressWarnings("serial")
+class CustomEditorKit extends HTMLEditorKit {
+	@Override
+	public ViewFactory getViewFactory() {
+	
+	    return new HTMLFactory() {
+	        @Override
+	        public View create(Element e) {
+	            View v = super.create(e);
+	            if (v instanceof InlineView) {
+	                return new InlineView(e) {
+	                    @Override
+	                    public int getBreakWeight(int axis, float pos, float len) {
+	                        return GoodBreakWeight;
+	                    }
+	
+	                    @Override
+	                    public View breakView(int axis, int p0, float pos, float len) {
+	                        if (axis == View.X_AXIS) {
+	                            this.checkPainter();
+	                            this.removeUpdate(null, null, null);
+	                        }
+	                        return super.breakView(axis, p0, pos, len);
+	                    }
+	                };
+	            }
+	            else if (v instanceof ParagraphView) {
+	                return new ParagraphView(e) {
+	                    @Override
+	                    protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+	                        if (r == null) {
+	                            r = new SizeRequirements();
+	                        }
+	                        float pref = this.layoutPool.getPreferredSpan(axis);
+	                        float min = this.layoutPool.getMinimumSpan(axis);
+	                        // Don't include insets, Box.getXXXSpan will include them. 
+	                        r.minimum = (int) min;
+	                        r.preferred = Math.max(r.minimum, (int) pref);
+	                        r.maximum = Integer.MAX_VALUE;
+	                        r.alignment = 0.5f;
+	                        return r;
+	                    }
+	
+	                };
+	            }
+	            return v;
+	        }
+	    };
+	    }
+}
+
+
+
+
+
+

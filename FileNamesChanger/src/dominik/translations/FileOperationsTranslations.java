@@ -261,7 +261,39 @@ public class FileOperationsTranslations implements Serializable {
 		return this.getKey("Info");
 	}
 
-	/////////////// PRIVATE ////////////////////////////////////////
+	public String getRecursiveSearch() {
+		return this.getKey("RecursiveSearch");
+	}
+
+	public String getRecursiveSearchToolTip() {
+		return this.getKey("RecursiveSearchToolTip");
+	}
+
+	public String getNameBeforeChange() {
+		return this.getKey("NameBeforeChange");
+	}
+
+	public String getNameAfterChange() {
+		return this.getKey("NameAfterChange");
+	}
+
+	public String getShowFullPathCheckbox() {
+		return this.getKey("ShowFullPathCheckbox");
+	}
+
+	public String getShowFullPathCheckboxTooltip() {
+		return this.getKey("ShowFullPathCheckboxTooltip");
+	}
+
+	public String getButtonClear() {
+		return this.getKey("ButtonClear");
+	}
+
+	public String getButtonClearTooltip() {
+		return this.getKey("ButtonClearTooltip");
+	}
+
+	// ///////////// PRIVATE ////////////////////////////////////////
 
 	private String getKey(String key) {
 		return bundleObject.getString(key);

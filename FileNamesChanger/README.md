@@ -37,6 +37,11 @@ so there's no need to explain it here. All that has to be told is the following:
 - **Choose language** allows you dynamically change language (English, Polish)
 
 
+# Used libraries
+- javax.swing
+- commons-io-2.4 <a href="http://commons.apache.org/proper/commons-io/download_io.cgi">LINK</a>
+
+
 # Saving frame object to disk
 **FileOperationsFrame** extends **SaveableJframe** which has all the functionality needed to save the object in serialized form into file.<br />
 Saving to disk occures when following method returns **true** value: <br />
@@ -55,6 +60,13 @@ Save path looks similar to this (in Windows 7):<br />
 
 
 # Issues
+
+## Swing JEditorPane line wrap issue
+During development of this program I've stumbled upon a **line wrap problem**. <br />  
+If you define **text/html** content type of the **JEditorPane**, line wrap doesn't work correctly in case of long strings that doesn't contain spaces. <br />
+And even if you define maximum size using **setMinimumSize()** method, you still can't prevent resizing the pane.<br />
+In this case I've used **CustomHTMLKit** class which comes from <a href="http://stackoverflow.com/questions/17533451/jeditorpane-linewrap-in-java7">HERE</a><br />
+
 ## Messed up Swing graphics in Java Swing (Windows 7)
 If you have messed up graphics in Java application window like it was mentioned <a href="http://stackoverflow.com/questions/22737535/swing-rendering-appears-broken-in-jdk-1-8-correct-in-jdk-1-7">HERE</a><br /> 
 What you have to do:
