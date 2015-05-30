@@ -10,3 +10,6 @@ It can **move** selected file to upper directory, changing it's name to director
 
 ### After add .reg file to Registry
 And you should see new context menu option **"Move to Parent and change name"**, if you click right mouse button on every file.<br />
+
+### Requirements
+Java Runtime Environment 7 (JRE 7) installed
