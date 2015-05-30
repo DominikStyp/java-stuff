@@ -6,6 +6,10 @@ First you have to **clone** repository by: <br />
 ```git
 $ git clone git@github.com:DominikStyp/java-stuff.git
 ```
+### Run JAR file 
+You can run it using **FileNamesChanger_RunMe.jar** which is executable file containing whole program.
+
+### Run project in Eclipse
 Program is saved as **Eclipse (Kepler) project**, so to use it you can import it to **Eclipse** by doing: <br />
 **Import -> General -> Existing Projects into Workspace (select repo directory)**<br />
 Go to **src -> dominik.fileOperationsProgram -> FileOperationsFrame.java** and click **Run**<br /> 
