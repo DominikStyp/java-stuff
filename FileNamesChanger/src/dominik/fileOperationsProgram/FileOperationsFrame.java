@@ -9,8 +9,6 @@ package dominik.fileOperationsProgram;
 import static dominik.miscTools.Files.*;
 import static dominik.miscTools.HTML.*;
 
-import java.awt.Button;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -18,7 +16,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -83,9 +80,6 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 	private static final String sampleRegexFrom = "sample\\w+(\\d+)\\.txt";
 	private static final String sampleRegexTo = "$1_sample.txt";
 	private static final String sampleDirectory = getCurrentDirectory() + getFileSeparator() + "TEST_DIR";
-	
-	//for debugging only
-	private static boolean debuggingModeOn = false;
 	
 	/**
 	 * Fields, buttons - GUI stuff
@@ -508,7 +502,7 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		buttonSimulateChangeFileNames.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				changeFileNamesAction(true);//true => only simulation of change with log
-				if(debuggingModeOn){
+				if(DebuggingConfig.debuggingOn){
 					showTextAreaHTMLInConsole();
 				}
 			}
@@ -519,7 +513,7 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 			public void actionPerformed(ActionEvent arg0) {
 				setupInitialValues();
 				//if it's not debugging mode
-				if(!debuggingModeOn){
+				if(!DebuggingConfig.debuggingOn){
 					showPlainMessage(translations.getExampleSettingsPopup());
 				}
 			}
@@ -558,7 +552,7 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		});	
 		
 		//for debug 
-		if(debuggingModeOn){
+		if(DebuggingConfig.debuggingOn){
 			buttonExample.doClick();
 		}
 		

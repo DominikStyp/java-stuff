@@ -29,10 +29,10 @@ public class FileOperationsTranslations implements Serializable {
 	 *
 	 */
 	public static enum AvailableLanguages {
-		English("en"), Polski("pl");
 		/**
-		 * Conditions of the Enum
+		 * Adding new languages is child's play, just add another constructor like French("fr") and file bundle called LabelsBundle_fr.properties
 		 */
+		English("en"), Polski("pl");
 		private String abbr;
 
 		private AvailableLanguages(String abbr) {

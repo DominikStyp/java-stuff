@@ -15,11 +15,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
@@ -33,9 +31,11 @@ import javax.swing.JFrame;
  */
 public abstract class SaveableJFrame extends JFrame  implements java.io.Serializable, WindowListener {
 	
-	
+		
 	public static void debugInfo(Object info){
-			System.out.println(info.toString());
+			if(DebuggingConfig.debuggingOn){
+				System.out.println(info.toString());
+			}
 	}
 	
 	///////////////////////////////// SAVING OBJECT TO DISK STUFF ////////////////////////////////////////////////////////////////////////////
