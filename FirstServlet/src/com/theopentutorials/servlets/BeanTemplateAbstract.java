@@ -7,7 +7,6 @@
 
 package com.theopentutorials.servlets;
 
-
 public abstract class BeanTemplateAbstract implements BeanTemplateInterface{
 	public Integer id = 0;
 	public String tableName = null;
