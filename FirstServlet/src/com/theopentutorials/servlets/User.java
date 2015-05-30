@@ -1,3 +1,9 @@
+/**
+ * If you want to use this script (or more than 20% of the code) please do not remove this comment.
+ * @author: DominikStyp@github.com
+ * @url: https://github.com/DominikStyp
+ */
+
 package com.theopentutorials.servlets;
 
 /**
@@ -10,9 +16,9 @@ public class User extends BeanTemplateAbstract{
 	protected String tableName = "user";
 	protected Integer id = 0;
 	protected String login = "dominik";
-	protected String email = "dominik.stypula@entestat.com";
-	protected String name = "Dominik Lukasz";
-	protected String surname = "Kowalski";
+	protected String email = "secret@top.secret.com";
+	protected String name = "Dominik";
+	protected String surname = "Styp";
 	protected String birth_date = "2000-01-01 01:00:00";
 	protected String registred_date = "2013-08-04 10:00:00";
 	protected Integer active = 1;
