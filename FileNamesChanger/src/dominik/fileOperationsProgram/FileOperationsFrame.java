@@ -246,8 +246,8 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		
 		//button change file names
 		buttonChangeFileNames = new JButton();
-		buttonChangeFileNames.setBounds(228, 172, 161, 23);
-		buttonChangeFileNames.setFont(getFontObject());
+		buttonChangeFileNames.setBounds(208, 172, 181, 23);
+		buttonChangeFileNames.setFont(new Font("Arial", Font.BOLD, 13));
 		contentPane.add(buttonChangeFileNames);
 		
 		//button copy to clipboard
@@ -364,6 +364,7 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 	private boolean isRecursiveSearch(){
 		return checkboxRecursiveSearch.isSelected();
 	}
+	
 	private boolean isShowFullPath(){
 		return checkboxShowFullPath.isSelected();
 	}
@@ -393,6 +394,19 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 			     wrapHTML(msg),
 			     translations.getError(),
 			    JOptionPane.ERROR_MESSAGE);
+	}
+	
+	private boolean showConfirmDialog(String title, String question, String yesButton, String noButton){
+		Object[] options = { yesButton, noButton };
+		int n = JOptionPane.showOptionDialog(frame,
+			    question,
+			    title,
+			    JOptionPane.YES_NO_OPTION,
+			    JOptionPane.QUESTION_MESSAGE,
+			    null,     //do not use a custom Icon
+			    options,  //the titles of buttons
+			    options[0]); //default button title
+		return (n == JOptionPane.YES_OPTION) ;
 	}
 	//////////////////////////////////////////////////////////////////////////
 	
@@ -487,20 +501,15 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 		
 		buttonChangeFileNames.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				setMessage( translations.getFileNamesChanged() );
 				changeFileNamesAction(false);//false => real file change
 			}
 		});
 		
 		buttonSimulateChangeFileNames.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				setMessage( translations.getSimulateChangeNames() );
 				changeFileNamesAction(true);//true => only simulation of change with log
 				if(debuggingModeOn){
 					showTextAreaHTMLInConsole();
-					debugInfo(textArea.getDocument().getDefaultRootElement().getName());
-					debugInfo("Preferred dimensions of getPreferredSize: " + textArea.getPreferredSize());
-					debugInfo("Preferred dimensions of getPreferredScrollableViewportSize: " + textArea.getPreferredScrollableViewportSize());
 				}
 			}
 		});
@@ -588,6 +597,10 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 	 * @param simulateOnly
 	 */
 	private void changeFileNamesAction(boolean simulateOnly){
+		// if user tries to change instead of simulate be sure he wanna do that
+		if( !simulateOnly && !showConfirmDialog(translations.getWarning(), translations.getSureToChangeFileNamesQuestion(), translations.getYes(), translations.getNo()) ){
+			return;
+		}
 		String from = regexFrom.getText();
 		String to = regexTo.getText();
 		if(lastChoosedDirectory == null){
@@ -625,7 +638,12 @@ public class FileOperationsFrame extends SaveableJFrame implements Serializable 
 				String htmlString = getChangedFilesAsHTMLTable ( renamedFiles );
 				
 				if(htmlString.length() > 0){
-					setMessage( (simulateOnly ? "" : translations.getFileNamesChanged() + BR) + htmlString.toString() );
+					if(simulateOnly){
+						setMessage( translations.getSimulationMessage() + htmlString.toString() );
+					} else {
+						setMessage( translations.getFileNamesChanged() + BR + htmlString.toString() );
+					}
+					
 				}
 				else {
 					showWarningMessage( translations.getHaventFoudFilesMachedPattern() + ": " + bold(fromPattern.toString()) );

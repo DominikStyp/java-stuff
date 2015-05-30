@@ -292,6 +292,21 @@ public class FileOperationsTranslations implements Serializable {
 	public String getButtonClearTooltip() {
 		return this.getKey("ButtonClearTooltip");
 	}
+	
+	public String getSimulationMessage() {
+		return this.getKey("SimulationMessage");
+	}
+	
+	public String getSureToChangeFileNamesQuestion() {
+		return this.getKey("SureToChangeFileNamesQuestion");
+	}
+	public String getYes() {
+		return this.getKey("Yes");
+	}
+	public String getNo() {
+		return this.getKey("No");
+	}
+	
 
 	// ///////////// PRIVATE ////////////////////////////////////////
 
