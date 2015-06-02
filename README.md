@@ -2,7 +2,7 @@
 Here will be stored my Java stuff like: programs, classes, libs etc.
 
 ## File Names REGEX Changer 
-<a href="https://github.com/DominikStyp/java-stuff/tree/master/FileNamesChanger"> File Names Changer </a> is a **Java program** written in **Java 7** build on Swing library, which allows you to change file names in selected directory,<br /> using defined **regular expressions**.
+<a href="https://github.com/DominikStyp/java-stuff/tree/master/FileNamesChanger"> File Names REGEX Changer </a> is a **Java program** written in **Java 7** build on Swing library, which allows you to change file names in selected directory,<br /> using defined **regular expressions**.
 
 ## Move to parent and change name
  <a href="https://github.com/DominikStyp/java-stuff/tree/master/moveToParentAndChangeToDirName">Move to parent and change name</a> is a **Java program** that **can be added to your context menu in Windows** in conjunction with batch script.<br />
